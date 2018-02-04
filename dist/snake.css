@@ -1,0 +1,12 @@
+html, body {
+	height: 100%;
+}
+* {
+	box-sizing: border-box;
+}
+snake-app {
+	height: 100%;
+	background-color: silver;
+	display: block;
+	position: relative;
+}
