@@ -15,6 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!appContainer) {
         appContainer = document.createElement(config.appContainerTag);
         document.body.appendChild(appContainer);
-        init(appContainer, config);
     }
+    init(appContainer, config);
 });

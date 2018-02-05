@@ -7,6 +7,12 @@ I'll choose to focus on the following.
 The incomplete game can be found here:
 https://egucciar.github.io/snake/
 
+## Usage
+
+open index.html to see application.
+
+to install deps and run, `npm install` and `npm run dev` for development / filewatcher mode, `npm run prod` for prod mode
+
 ## Tech Choices
 
 Limited in what tech I can use, the idea here is to use something with minimal setup
