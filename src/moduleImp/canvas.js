@@ -1,113 +1,12 @@
 import _ from 'lodash';
 import { abstractView } from './view';
+import { fitToContainer } from './canvas/canvasHelper';
+import { shape } from './canvas/shape';
 
-function fitToContainer(canvas) {
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-}
-
+// the shapeMap would be leveraged if we needed to clear the entire canvas
+// this would allow us to redraw the entire canvas. 
+// it's not currently in use
 const shapeMap = {};
-
-let id = 0;
-
-/**
- * 
- * @param {*} x the starting X coordinate
- * @param {*} y the starting Y coordinate
- * @param {*} w number of pixels width
- * @param {*} h numer of pizels height
- * @param {*} fill fill color
- */
-function shape(ctx, x = 0, y = 0, w = 1, h = 1, fill = '#000000') {
-    let internalX = x,
-        internalY = y,
-        internalW = w,
-        internalH = h,
-        canvasWidth = ctx.canvas.width,
-        canvasHeight = ctx.canvas.height;
-
-    function draw() {
-        ctx.fillStyle = fill;
-        ctx.fillRect(internalX, internalY, internalW, internalH);
-    }
-
-    function clear() {
-        ctx.clearRect(internalX, internalY, internalW, internalH);
-        // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        ctx.beginPath();
-    }
-
-    function checkoutOfBounds() {
-        let error;
-        if (internalX + internalW > canvasWidth) {
-            error = 'Shape went out of bounds (width - right)';
-        }
-        if (internalY + internalH > canvasHeight) {
-            error = 'Shape went out of bounds (height - bottom)';
-        }
-        if (internalY < 0) {
-            error = 'Shape went out of bounds (height - top';
-        }
-        if (internalX < 0) {
-            error = 'Shape went out of bounds (width - left';
-        }
-        if (error) {
-            console.log(error);
-            throw new Error(error);
-        }
-    }
-
-    function checkValidDimensions() {
-        const isInvalid = [internalX, internalY, internalW, internalH].some((n) => {
-            return n < 0;
-        });
-        if (isInvalid) {
-            // debugger;
-            console.log('Invalid dimensions');
-            // throw new Error('Invalid dimensions');
-        }
-    }
-
-    function move(x, y) {
-        clear();
-        internalX += x;
-        internalY += y;
-        draw();
-        checkValidDimensions();
-        checkoutOfBounds();
-    }
-
-    function resize(x, y) {
-        clear();
-        internalW += x;
-        internalH += y;
-        draw();
-        checkValidDimensions();
-        checkoutOfBounds();
-    }
-
-    function getDimensions() {
-        return {
-            x: internalX,
-            y: internalY,
-            width: internalW,
-            height: internalH
-        };
-    }
-
-    id++;
-
-    return {
-        getDimensions,
-        resize,
-        draw,
-        clear,
-        move,
-        id
-    };
-}
 
 function canvasView(...args) {
     const view = abstractView(...args),
@@ -148,50 +47,14 @@ function canvasView(...args) {
         return resizeRect(...args);
     }
 
-    function _resizeRect(rect, direction, grow) {
-        let x = 0, y = 0;
-        switch (direction) {
-            case 'right':
-                x = 1;
-                break;
-            case 'left':
-                x = -1;
-                break;
-            case 'up':
-                y = -1;
-                break;
-            case 'down':
-                y = 1;
-                break;
-        }
-
-        return new Promise((resolve, reject) => {
-            let i = 0;
-            const interval = setInterval(() => {
-                i++;
-                try {
-                    if (grow) {
-                        rect.resize(x, y);
-                    } else {
-                        rect.move(x, y);
-                        rect.resize(x * -1, y * -1);
-                    }
-                } catch (ex) {
-                    clearInterval(interval);
-                    reject(ex);
-                }
-                if (i === boxSize) {
-                    clearInterval(interval);
-                    resolve();
-                }
-            }, 10);
-        });
-    }
-
-
+    // 100% certain this function is one of the cause of the headaches
+    // needs to be debugged further. Possibly trying to make everything "smooth"
+    // is creating more issues than it's worth. Definitely need to add more logging / checking here.
     function resizeRect(rect, direction, grow) {
         let moveX = 0, moveY = 0,
             growX = 0, growY = 0;
+
+        // the grow/shrink logic still needed tweaking and testing
         if (grow) {
             switch (direction) {
             case 'right':
@@ -231,6 +94,8 @@ function canvasView(...args) {
 
         return new Promise((resolve, reject) => {
             let i = 0;
+            // use an interval for "smoothly" moving the snake
+            // 1x1 pixel until it is resized by 1 box size
             const interval = setInterval(() => {
                 i++;
                 try {
@@ -251,22 +116,24 @@ function canvasView(...args) {
     function moveRect(rect, direction) {
         let x = 0, y = 0;
         switch (direction) {
-            case 'right':
-                x = 1;
-                break;
-            case 'left':
-                x = -1;
-                break;
-            case 'up':
-                y = -1;
-                break;
-            case 'down':
-                y = 1;
-                break;
+        case 'right':
+            x = 1;
+            break;
+        case 'left':
+            x = -1;
+            break;
+        case 'up':
+            y = -1;
+            break;
+        case 'down':
+            y = 1;
+            break;
         }
 
         return new Promise((resolve, reject) => {
             let i = 0;
+            // use an interval for "smoothly" moving the snake
+            // 1x1 pixel until it is moved by 1 box size
             const interval = setInterval(() => {
                 i++;
                 try {
@@ -283,6 +150,9 @@ function canvasView(...args) {
         });
     }
 
+    // may want to refactor this function 
+    // or create a more generic "remove" function
+    // and/ore create a "addOne" function for consistency
     function removeOne(rect, direction) {
         let x = 0, y = 0;
         switch (direction) {
@@ -306,10 +176,10 @@ function canvasView(...args) {
     return _.merge({}, view, {
         createContainer,
         createRect,
+        moveRect,
         growRect,
         shrinkRect,
-        removeOne,
-        moveRect
+        removeOne
     });
 }
 

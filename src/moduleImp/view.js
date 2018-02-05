@@ -1,13 +1,11 @@
 function abstractView(containerEl, config = {}) {
-    function createContainer() {
-        throw new Error('createContainer function not defined');
+
+    function notDefined(functionName) {
+        return function () {
+            throw new Error(`${functionName} is not defined`);
+        };
     }
-    function createRect() {
-        throw new Error('createRect function not defined');
-    }
-    function moveRect() {
-        throw new Error('moveRect function not defined');
-    }
+
 
     return {
         // defaults
@@ -15,9 +13,12 @@ function abstractView(containerEl, config = {}) {
         // props
         containerEl,
         // methods
-        createContainer,
-        createRect,
-        moveRect
+        createContainer: notDefined('createContainer'),
+        createRect: notDefined('createRect'),
+        moveRect: notDefined('moveRect'),
+        growRect: notDefined('growRect'),
+        shrinkRect: notDefined('shrinkRect'),
+        removeOne: notDefined('reoveOne')
     };
 }
 
