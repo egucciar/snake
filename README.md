@@ -40,8 +40,8 @@ If you want the "best of both" then you're looking at less consistent code style
 
 ## Spec
 
-1) The Snake starts as a small like and a random position for a block of food is chosen
-2) The user directs the snake's direction with up/down keys
+1) The Snake starts as a small line and a random position for a block of food is chosen
+2) The user directs the snake's direction with up/down/left/right keys
 3) Whenever a food is eaten, the size of the snake increases by 1 block, and a new position for food is randomly generated
 4) The position of food must not be in a position where the snake currently takes up space
 5) Whenever snake colides with itself or the wall, the game ends
