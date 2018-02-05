@@ -53,7 +53,7 @@ function shape(ctx, x = 0, y = 0, w = 1, h = 1, fill = '#000000') {
             return n < 0;
         });
         if (isInvalid) {
-            // debugger;
+            debugger;
             console.log('Invalid dimensions');
             // throw new Error('Invalid dimensions');
         }

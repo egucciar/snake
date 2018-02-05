@@ -140,7 +140,7 @@ function canvasView(...args) {
                     rect.move(x, y);
                 } catch (ex) {
                     clearInterval(interval);
-                    reject();
+                    reject(ex);
                 }
                 if (i === boxSize) {
                     clearInterval(interval);
@@ -153,24 +153,28 @@ function canvasView(...args) {
     // may want to refactor this function 
     // or create a more generic "remove" function
     // and/ore create a "addOne" function for consistency
+    // TODO: abstract & reuse for the "resize" function itself
     function removeOne(rect, direction) {
-        let x = 0, y = 0;
+        let moveX = 0, moveY = 0,
+            growX = 0, growY = 0;
         switch (direction) {
         case 'right':
-            x = 1;
+            moveX = 1;
+            growX = -1;
             break;
         case 'left':
-            x = -1;
+            growX = -1;
             break;
         case 'up':
-            y = -1;
+            growY = -1;
             break;
         case 'down':
-            y = 1;
+            growY = -1;
+            moveY = 1;
             break;
-        }
-        rect.move(x * boxSize, y * boxSize);
-        rect.resize(x * boxSize * -1, y * boxSize * -1);
+        }  
+        rect.move(moveX * boxSize, moveY * boxSize);
+        rect.resize(growX * boxSize, growY * boxSize);
     }
 
     return _.merge({}, view, {

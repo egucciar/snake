@@ -4,6 +4,9 @@ The aim of the game is to eat as much food as possible before dying.
 There are many things that can be done to implement this game, but with limited amount of time,
 I'll choose to focus on the following.
 
+The incomplete game can be found here:
+https://egucciar.github.io/snake/
+
 ## Tech Choices
 
 Limited in what tech I can use, the idea here is to use something with minimal setup
@@ -72,11 +75,7 @@ Here's what was left to do:
 
 ### Solidifying the basic mechanism of function
 
-The snake doesn't move EXACTLY as expected at all moments, and thus i need to dig deeper into this.
-For example, the Dervive Origin function is buggy, as well as the grow/shrink function.
-I would want to tighten up the "move" loop, add additional logging and error handling,
-and find the root cause. It took me awhile to get to the point where the snake was moving somewhat as expected.
-I'm moving the snake with the keys in the right direction, and able to grow/shrink the front and back as expected mostly. The sizing is off and as a result, sometimes you'll see some odd glitches. This makes me really sad, and I'll want to continue working on it until it's solid and I've discovered the flaw in my logic. I'll need to look over the current logic again and try to determine the root cause of the issue, I have an idea that it's the grow/shrink and derive origin, as well as the "move loop" which may be imperfect. I may also consider removing the "smooth" animation optimization and moving it block by block rather than pixel by pixel, as this might reduce a lot of the error-proneness of the application.
+The very last thing I was able to do prior to submitting was fixing a few bugs. thus, you will see some comments where I was debugging things and finally some todo statements where I felt things could be consolidated, but kept them seperate so I can debug them. I would like to consolidate the removeOne and resize functions a bit, as they have duplicated logic therefore making it more error prone.
 
 ### Block of food generation & Detecting Self Cross-over
 

@@ -16,7 +16,7 @@ export function init(containerEl, config) {
         pause = false;
 
     window.rects = rects; // exposing rects to window for easier debugging
-    
+
     view.createContainer();
 
     rects.push({
@@ -24,9 +24,9 @@ export function init(containerEl, config) {
         rect: view.createRect(25, 25, 10, 1),
         size: 10,
         direction: 'right'
-    });  
+    });
 
-    move();   
+    move();
 
 
     document.addEventListener('keyup', function (event) {
@@ -36,17 +36,17 @@ export function init(containerEl, config) {
         // createSelfRect function allows itself to be called when the last "move" is completed
         // rather than interrupting to move while it's happening (i.e. whenever keystroke occured)
         // possible area of improvement for future, by weaving it more intutively into the "move" call
-        function createSelfRect () {
+        function createSelfRect() {
             const origin = deriveOrigin(lastRect.direction, direction, lastRect.rect.getDimensions());
             return view.createRect(origin.x, origin.y, 1, 1);
         }
-        
-        if (direction 
-                && direction !== lastRect.direction 
-                && !opposite(lastRect.direction, direction)) {
+
+        if (direction
+            && direction !== lastRect.direction
+            && !opposite(lastRect.direction, direction)) {
             console.log('[snake] allowable direction change detected:', direction);
             rects.push({
-                createSelfRect, 
+                createSelfRect,
                 size: 1,
                 direction
             });
@@ -55,7 +55,9 @@ export function init(containerEl, config) {
         // this code would be refactored / removed for final product
         if (event.keyCode === 32) {
             pause = !pause;
-            move();
+            if (!pause) {
+                move(); //resume
+            }
         }
     });
 
@@ -66,33 +68,42 @@ export function init(containerEl, config) {
         if (rects.length === 1) {
             const rect = rects[0].rect,
                 direction = rects[0].direction;
+            // console.log('[snake] snakeSize:', getSize(rect.getDimensions()));
             view.moveRect(rect, direction)
                 .then(() => {
                     move();
                 })
                 .catch((ex) => {
-                    throw ex;
+                    console.error(ex);
                 });
         } else {
             const frontRect = rects[rects.length - 1],
                 backRect = rects[0];
             if (!frontRect.rect) {
                 setTimeout(() => {
+                    // console.log('[snake] creating block in direction ', frontRect.direction);
                     frontRect.rect = frontRect.createSelfRect();
                     view.removeOne(backRect.rect, backRect.direction);
                     // size change detection doesn't seem to work perfectly well.
                     // another area of potential improvement
                     backRect.size--;
+                    // console.log('[snake] removing block in direction ', backRect.direction, 'remaining size:', backRect.size);
+                    if (backRect.size === 0) {
+                        backRect.rect.clear();
+                        rects.shift(); // if it immediately goes to Zero, remove it now
+                    }
                     move();
                 }, 0); // push to end of eventloop, this needs to be revisited for robustness
                 return;
             }
-            
+
             // if there's more than one rectangle being kept track of
             // then the previous rect will be shrunk while the front rect will be grown
-            Promise.all([
-                view.growRect(frontRect.rect, frontRect.direction),
-                view.shrinkRect(backRect.rect, backRect.direction)
+            // console.log('[snake] creating block in direction ', frontRect.direction, 'newSize:', frontRect.size + 1);
+            // console.log('[snake] removing block in direction ', backRect.direction, 'remaining size:', backRect.size - 1);
+            Promise.all([                
+                view.shrinkRect(backRect.rect, backRect.direction),
+                view.growRect(frontRect.rect, frontRect.direction)
             ])
                 .then(() => {
                     // todo: put in way better detections for ensuring the size of the snake
@@ -102,14 +113,14 @@ export function init(containerEl, config) {
                     backRect.size--;
                     frontRect.size++;
                     const size = backRect.rect.getDimensions();
-                    if (backRect.size === 0 || size.width < 0 || size.height < 0) {
+                    if (backRect.size <= 0 || size.width < 0 || size.height < 0) {
                         backRect.rect.clear();
                         rects.shift(); // remove back rect
                     }
                     move();
                 })
                 .catch((ex) => {
-                    throw ex;
+                    console.error(ex);
                 });
         }
     }
@@ -133,11 +144,11 @@ export function init(containerEl, config) {
     // thus, this would need to be revisited and updated
     function deriveOrigin(lastDirection, direction, dimensions) {
         const {
-            x, y, width, height 
+            x, y, width, height
         } = dimensions;
 
         console.log(`[deriveOrigin] lastDirection: ${lastDirection}, direction: ${direction}`);
-        
+
         if (lastDirection === 'right') {
             if (direction === 'down') {
                 return {
@@ -156,7 +167,7 @@ export function init(containerEl, config) {
         if (lastDirection === 'left') {
             if (direction === 'down') {
                 return {
-                    x: x - boxSize,
+                    x: x,
                     y: y + boxSize
                 };
             }
@@ -186,16 +197,19 @@ export function init(containerEl, config) {
         if (lastDirection === 'up') {
             if (direction === 'right') {
                 return {
-                    x: x,
-                    y: y - boxSize
+                    x: x + boxSize,
+                    y
                 };
             }
             if (direction === 'left') {
                 return {
-                    x, 
-                    y: y - boxSize
+                    x, y
                 };
             }
         }
+    }
+
+    function getSize(dimensions) {
+        return dimensions.width > dimensions.height ? dimensions.width : dimensions.height;
     }
 }
